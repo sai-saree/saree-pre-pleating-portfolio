@@ -486,13 +486,13 @@ export default function Home() {
       <header className="border-b border-accent-gold/10 glass-header sticky top-0 z-40 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 h-24 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-brand-pink/5 border border-accent-gold/15 relative overflow-hidden">
+            <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-brand-pink/5 border border-accent-gold/15 relative overflow-hidden">
               <Image
                 src="/favicon.ico"
                 alt="Sai Saree Academy Logo"
                 fill
-                sizes="48px"
-                style={{ objectFit: "contain", padding: "6px" }}
+                sizes="64px"
+                style={{ objectFit: "contain", padding: "2px" }}
               />
             </div>
             <div>
@@ -813,7 +813,7 @@ export default function Home() {
                 </div>
                 <h5 className="font-serif font-bold text-lg text-[#2C2623]">Follow our Journey</h5>
                 <p className="text-[10px] text-gray-500 mt-1 max-w-[200px] font-semibold">Latest updates, student stories, and pleating tutorials on Instagram</p>
-                <a href="https://instagram.com/SAI_SAREE_PRE_PLEATING" target="_blank" rel="noreferrer" className="mt-4 px-6 py-2.5 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white font-bold text-[10px] uppercase tracking-widest rounded-xl hover:shadow-lg transition-shadow">@SAI_SAREE_PRE_PLEATING</a>
+                <a href="https://www.instagram.com/sai__saree_pre_pleating?igsh=MTR1eTg1amdxMGcxZw%3D%3D" target="_blank" rel="noreferrer" className="mt-4 px-6 py-2.5 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white font-bold text-[10px] uppercase tracking-widest rounded-xl hover:shadow-lg transition-shadow">@sai__saree_pre_pleating</a>
               </div>
             </div>
 
