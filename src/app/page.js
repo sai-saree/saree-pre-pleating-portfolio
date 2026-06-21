@@ -36,6 +36,7 @@ export default function Home() {
   const [approvingPayment, setApprovingPayment] = useState(null); // `${eventId}-${userId}`
   const [selectedRegs, setSelectedRegs] = useState([]); // Array of strings: `${eventId}-${userId}`
   const [adminEventFilter, setAdminEventFilter] = useState("all");
+  const [adminSearchQuery, setAdminSearchQuery] = useState("");
   const [toast, setToast] = useState({ message: "", type: "" }); // type: 'success' | 'error'
 
   // Workshop details modal state
@@ -1054,6 +1055,13 @@ export default function Home() {
                       <p className="text-xs text-gray-500 mt-1 font-medium">Verify payments, mark participant attendance, dispatch graduation certificates, and grant lecture access.</p>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
+                      <input
+                        type="text"
+                        placeholder="Search student name / email..."
+                        value={adminSearchQuery}
+                        onChange={(e) => setAdminSearchQuery(e.target.value)}
+                        className="px-4 py-2.5 bg-white border border-accent-gold/30 hover:border-brand-pink text-xs font-bold text-[#2C2623] rounded-xl focus:outline-none placeholder:text-gray-400 transition-colors w-full md:w-56"
+                      />
                       <select
                         value={adminEventFilter}
                         onChange={(e) => {
@@ -1071,12 +1079,47 @@ export default function Home() {
                         onClick={fetchAdminRegistrations}
                         className="px-6 py-2.5 bg-white border border-accent-gold/30 hover:border-brand-pink hover:bg-brand-pink/5 rounded-xl text-xs font-bold text-accent-gold hover:text-brand-pink uppercase tracking-wider transition-colors w-fit"
                       >
-                        Refresh Registrations
+                        Refresh
                       </button>
                     </div>
                   </div>
 
-                  {/* Premium Batch Actions Panel */}
+                  {/* Event-Wide Bulk Actions Panel */}
+                  {adminEventFilter !== "all" ? (
+                    <div className="mb-8 p-5 bg-gradient-to-r from-brand-pink/5 via-white to-accent-gold/5 border border-accent-gold/15 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 text-left shadow-sm">
+                      <div>
+                        <h4 className="text-[11px] uppercase font-black text-[#2C2623] tracking-widest flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-brand-pink animate-pulse" />
+                          Workshop Operations (Bulk)
+                        </h4>
+                        <p className="text-[10px] text-gray-500 font-bold mt-1 max-w-md">
+                          Run event operations in bulk. System targets only students with an <span className="text-[#2C2623] font-black">Approved Tuition</span> and marked <span className="text-[#2C2623] font-black">Present</span>.
+                        </p>
+                      </div>
+                      <div className="flex gap-3 w-full md:w-auto">
+                        <button
+                          onClick={() => handleSendCertificates(Number(adminEventFilter))}
+                          className="flex-1 md:flex-none px-5 py-3 bg-[#2C2623] hover:bg-brand-pink text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all duration-300 shadow-md flex items-center justify-center gap-1.5 hover:scale-[1.02]"
+                        >
+                          🎓 Send Certificates
+                        </button>
+                        <button
+                          onClick={() => handleGrantDriveAccess(Number(adminEventFilter))}
+                          className="flex-1 md:flex-none px-5 py-3 bg-[#2C2623] hover:bg-accent-gold text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all duration-300 shadow-md flex items-center justify-center gap-1.5 hover:scale-[1.02]"
+                        >
+                          📂 Give Drive Access
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-8 p-4 bg-blush-pink/10 border border-brand-pink/15 rounded-2xl text-left">
+                      <p className="text-xs text-brand-pink-dark font-bold flex items-center gap-2">
+                        <span>💡</span> Select a specific workshop from the dropdown to run bulk operations (dispatch certificates and grant drive access).
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Batch Actions Panel for Checkboxes */}
                   {selectedRegs.length > 0 && (
                     <div className="mb-6 p-4 bg-brand-pink/5 border border-brand-pink/20 rounded-2xl flex flex-col lg:flex-row items-center justify-between gap-4 animate-in slide-in-from-top duration-300 text-left">
                       <div className="flex items-center gap-2">
@@ -1108,13 +1151,6 @@ export default function Home() {
                           {loading === "batch-attendance" ? <LuxuryDrapeLoader text="Marking..." /> : "❌ Mark Absent"}
                         </button>
                         <button
-                          onClick={handleBatchSendCertificates}
-                          disabled={loading === "batch-certificate"}
-                          className="px-3.5 py-2 bg-brand-pink hover:bg-brand-pink-dark text-white rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {loading === "batch-certificate" ? <LuxuryDrapeLoader text="Sending..." /> : "🎓 Send Certificates"}
-                        </button>
-                        <button
                           onClick={() => setSelectedRegs([])}
                           className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-colors"
                         >
@@ -1130,25 +1166,33 @@ export default function Home() {
                     </div>
                   ) : (
                     (() => {
-                      const filteredAdminRegistrations = adminRegistrations.filter((reg) => {
+                      let filteredAdminRegistrations = adminRegistrations.filter((reg) => {
                         if (adminEventFilter === "all") return true;
                         return reg.event_id === Number(adminEventFilter);
                       });
 
+                      if (adminSearchQuery.trim() !== "") {
+                        const q = adminSearchQuery.toLowerCase();
+                        filteredAdminRegistrations = filteredAdminRegistrations.filter((reg) => 
+                          (reg.user.name || "").toLowerCase().includes(q) || 
+                          (reg.user.email || "").toLowerCase().includes(q)
+                        );
+                      }
+
                       if (filteredAdminRegistrations.length === 0) {
                         return (
                           <div className="p-12 text-center text-xs text-gray-400 bg-gray-50 rounded-2xl border border-dashed border-gray-200 uppercase tracking-widest font-bold">
-                            No registrations match the selected workshop filter.
+                            No registrations match the selected filters.
                           </div>
                         );
                       }
 
                       return (
-                        <div className="overflow-x-auto rounded-2xl border border-accent-gold/10">
+                        <div className="overflow-x-auto rounded-3xl border border-accent-gold/15 shadow-md bg-white">
                           <table className="w-full text-left text-xs border-collapse">
                             <thead>
-                              <tr className="bg-[#FAF7F5] border-b border-accent-gold/10 text-[#2C2623] font-bold uppercase tracking-wider text-[10px]">
-                                <th className="py-4.5 px-4 text-center w-12">
+                              <tr className="bg-[#FAF7F5] border-b border-accent-gold/15 text-[#2C2623] font-bold uppercase tracking-wider text-[10px]">
+                                <th className="py-5 px-5 text-center w-12 border-r border-accent-gold/5">
                                   <input
                                     type="checkbox"
                                     checked={filteredAdminRegistrations.length > 0 && filteredAdminRegistrations.every(reg => selectedRegs.includes(`${reg.event_id}-${reg.user_id}`))}
@@ -1164,18 +1208,18 @@ export default function Home() {
                                     className="rounded border-accent-gold/30 text-brand-pink focus:ring-brand-pink w-4 h-4 cursor-pointer"
                                   />
                                 </th>
-                                <th className="py-4.5 px-4 font-black">Student Details</th>
-                                <th className="py-4.5 px-4 font-black">Workshop</th>
-                                <th className="py-4.5 px-4 font-black">Tuition Status</th>
-                                <th className="py-4.5 px-4 font-black">Attendance Status</th>
-                                <th className="py-4.5 px-4 font-black">Recording Access</th>
-                                <th className="py-4.5 px-4 font-black text-right">Actions</th>
+                                <th className="py-5 px-5 font-black">Student Details</th>
+                                <th className="py-5 px-5 font-black">Workshop</th>
+                                <th className="py-5 px-5 font-black">Tuition Status</th>
+                                <th className="py-5 px-5 font-black">Attendance</th>
+                                <th className="py-5 px-5 font-black">Certificate</th>
+                                <th className="py-5 px-5 font-black">Drive Access</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-accent-gold/5 bg-white">
+                            <tbody className="divide-y divide-accent-gold/10 bg-white">
                               {filteredAdminRegistrations.map((reg) => (
-                                <tr key={`${reg.user_id}-${reg.event_id}`} className="hover:bg-[#FAF7F5]/50 transition-colors">
-                                  <td className="py-4.5 px-4 text-center">
+                                <tr key={`${reg.user_id}-${reg.event_id}`} className="hover:bg-[#FAF7F5]/60 transition-colors">
+                                  <td className="py-5 px-5 text-center border-r border-accent-gold/5">
                                     <input
                                       type="checkbox"
                                       checked={selectedRegs.includes(`${reg.event_id}-${reg.user_id}`)}
@@ -1190,69 +1234,86 @@ export default function Home() {
                                       className="rounded border-accent-gold/30 text-brand-pink focus:ring-brand-pink w-4 h-4 cursor-pointer"
                                     />
                                   </td>
-                                  <td className="py-4.5 px-4 text-left">
-                                    <div className="font-bold text-[#2C2623]">{reg.user.name}</div>
+                                  <td className="py-5 px-5 text-left">
+                                    <div className="font-bold text-[#2C2623] text-sm">{reg.user.name}</div>
                                     <div className="text-[10px] text-gray-400 mt-0.5">{reg.user.email}</div>
+                                    <div className="text-[9px] text-[#2C2623]/60 mt-0.5 font-bold">📞 {reg.user.phone}</div>
                                   </td>
-                                  <td className="py-4.5 px-4 text-left">
-                                    <span className="font-medium text-gray-700">{reg.event.title}</span>
+                                  <td className="py-5 px-5 text-left font-serif font-bold text-gray-700 max-w-[150px] truncate" title={reg.event.title}>
+                                    {reg.event.title}
                                   </td>
-                                  <td className="py-4.5 px-4 text-left">
+                                  <td className="py-5 px-5 text-left">
                                     {reg.payment_status === "PENDING" ? (
                                       <button
                                         onClick={() => handleApprovePayment(reg.event_id, reg.user_id)}
                                         disabled={approvingPayment === `${reg.event_id}-${reg.user_id}`}
-                                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-wider shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02]"
                                       >
-                                        {approvingPayment === `${reg.event_id}-${reg.user_id}` ? "Approving..." : "Approve Payment"}
+                                        {approvingPayment === `${reg.event_id}-${reg.user_id}` ? "Approving..." : "Verify Payment"}
                                       </button>
                                     ) : (
-                                      <span className="text-green-600 font-bold bg-green-50 border border-green-100 px-2.5 py-1 rounded-md">✓ Completed</span>
+                                      <span className="inline-flex items-center gap-1 text-green-700 font-bold bg-green-50 border border-green-200 px-3 py-1 rounded-xl text-[10px]">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                        ✓ Approved
+                                      </span>
                                     )}
                                   </td>
-                                  <td className="py-4.5 px-4 text-left">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-bold text-gray-700 min-w-16">{reg.attendance_status}</span>
-                                      <div className="flex gap-1">
+                                  <td className="py-5 px-5 text-left">
+                                    {reg.attendance_status === "NOT_MARKED" ? (
+                                      <div className="flex gap-1.5">
                                         <button
                                           onClick={() => handleMarkAttendance(reg.event_id, reg.user_id, "PRESENT")}
-                                          className="px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded font-semibold text-[9px] transition-colors"
+                                          className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-xl font-black text-[10px] uppercase tracking-wider transition-colors hover:scale-[1.02]"
                                         >
                                           Present
                                         </button>
                                         <button
                                           onClick={() => handleMarkAttendance(reg.event_id, reg.user_id, "ABSENT")}
-                                          className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded font-semibold text-[9px] transition-colors"
+                                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl font-black text-[10px] uppercase tracking-wider transition-colors hover:scale-[1.02]"
                                         >
                                           Absent
                                         </button>
                                       </div>
-                                    </div>
+                                    ) : reg.attendance_status === "PRESENT" ? (
+                                      <span className="inline-flex items-center gap-1 text-green-700 font-bold bg-green-50 border border-green-200 px-3 py-1 rounded-xl text-[10px]">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                        ✓ Present
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 text-red-700 font-bold bg-red-50 border border-red-200 px-3 py-1 rounded-xl text-[10px]">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                        ✕ Absent
+                                      </span>
+                                    )}
                                   </td>
-                                  <td className="py-4.5 px-4 text-left text-gray-500 font-medium">
-                                    {reg.drive_access_expiry
-                                      ? new Date(reg.drive_access_expiry).toLocaleDateString()
-                                      : "None"}
+                                  <td className="py-5 px-5 text-left">
+                                    {reg.certificate_sent ? (
+                                      <span className="inline-flex items-center gap-1 text-brand-pink font-bold bg-blush-pink border border-brand-pink/20 px-3 py-1 rounded-xl text-[10px]">
+                                        🎓 Dispatched
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 text-gray-400 font-semibold bg-gray-50 border border-gray-200 px-3 py-1 rounded-xl text-[10px]">
+                                        ✕ Not Sent
+                                      </span>
+                                    )}
                                   </td>
-                                  <td className="py-4.5 px-4 text-right">
-                                    <div className="flex items-center justify-end gap-2">
-                                      <button
-                                        onClick={() => handleSendCertificates(reg.event_id)}
-                                        disabled={reg.payment_status !== "COMPLETED" || reg.attendance_status !== "PRESENT"}
-                                        title="Send Certificate"
-                                        className="px-3 py-1.5 bg-white hover:bg-brand-pink hover:text-white border border-brand-pink/20 text-brand-pink font-bold rounded-lg text-[10px] uppercase tracking-wider transition-all disabled:opacity-40 disabled:pointer-events-none"
-                                      >
-                                        🎓 Certificate
-                                      </button>
-                                      <button
-                                        onClick={() => handleGrantDriveAccess(reg.event_id)}
-                                        disabled={reg.payment_status !== "COMPLETED" || reg.attendance_status !== "PRESENT"}
-                                        title="Share Drive Recordings"
-                                        className="px-3 py-1.5 bg-accent-gold text-white hover:bg-gold-dark font-bold rounded-lg text-[10px] uppercase tracking-wider transition-all disabled:opacity-40 disabled:pointer-events-none border border-accent-gold/10"
-                                      >
-                                        📂 Share Drive
-                                      </button>
-                                    </div>
+                                  <td className="py-5 px-5 text-left">
+                                    {reg.has_drive_access ? (
+                                      <div className="flex flex-col">
+                                        <span className="inline-flex items-center gap-1 text-accent-gold font-bold bg-gold-light/40 border border-accent-gold/20 px-3 py-1 rounded-xl text-[10px] w-fit">
+                                          📂 Granted
+                                        </span>
+                                        {reg.drive_access_expiry && (
+                                          <span className="text-[9px] text-gray-400 mt-1 font-semibold">
+                                            Expires: {new Date(reg.drive_access_expiry).toLocaleDateString()}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 text-gray-400 font-semibold bg-gray-50 border border-gray-200 px-3 py-1 rounded-xl text-[10px]">
+                                        ✕ No Access
+                                      </span>
+                                    )}
                                   </td>
                                 </tr>
                               ))}
