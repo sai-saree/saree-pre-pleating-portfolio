@@ -38,6 +38,9 @@ export default function Home() {
   const [adminEventFilter, setAdminEventFilter] = useState("all");
   const [toast, setToast] = useState({ message: "", type: "" }); // type: 'success' | 'error'
 
+  // Workshop details modal state
+  const [selectedEventDetails, setSelectedEventDetails] = useState(null);
+
   // Admin New Event Form
   const [showEventModal, setShowEventModal] = useState(false);
   const [newEvent, setNewEvent] = useState({
@@ -95,7 +98,7 @@ export default function Home() {
     e.preventDefault();
     setAuthError("");
     setLoading("auth");
-    
+
     try {
       if (authMode === "signup") {
         // Step 1: Sign up
@@ -434,12 +437,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative font-sans selection:bg-brand-pink/20">
-      
+
       {/* Toast Notification */}
       {toast.message && (
-        <div className={`fixed bottom-6 right-6 z-50 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border transition-all duration-300 transform translate-y-0 scale-100 ${
-          toast.type === "error" ? "bg-white border-red-200 text-red-700" : "bg-white border-brand-pink/20 text-[#2C2623]"
-        }`}>
+        <div className={`fixed bottom-6 right-6 z-50 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border transition-all duration-300 transform translate-y-0 scale-100 ${toast.type === "error" ? "bg-white border-red-200 text-red-700" : "bg-white border-brand-pink/20 text-[#2C2623]"
+          }`}>
           <div className={`w-2.5 h-2.5 rounded-full ${toast.type === "error" ? "bg-red-500 animate-pulse" : "bg-brand-pink animate-pulse"}`} />
           <span className="text-xs font-semibold tracking-wide">{toast.message}</span>
         </div>
@@ -449,9 +451,14 @@ export default function Home() {
       <header className="border-b border-accent-gold/10 glass-header sticky top-0 z-40 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 h-24 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-brand-pink flex items-center justify-center shadow-lg shadow-brand-pink/15 border border-brand-pink/10 relative overflow-hidden">
-              <span className="text-white font-serif font-bold text-2xl relative z-10">S</span>
-              <div className="absolute inset-0 bg-gradient-to-tr from-brand-pink-dark to-brand-pink opacity-80" />
+            <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-brand-pink/5 border border-accent-gold/15 relative overflow-hidden">
+              <Image
+                src="/favicon.ico"
+                alt="Sai Saree Academy Logo"
+                fill
+                sizes="48px"
+                style={{ objectFit: "contain", padding: "6px" }}
+              />
             </div>
             <div>
               <h1 className="text-xl font-serif font-black tracking-wider text-brand-pink-dark uppercase">SAI SAREE</h1>
@@ -512,12 +519,12 @@ export default function Home() {
 
       {/* Main Body */}
       <main className="flex-1">
-        
+
         {/* Hero Section */}
         <section id="about" className="py-20 lg:py-28 relative overflow-hidden bg-[#FAF7F5]">
           <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-brand-pink/5 rounded-full filter blur-3xl opacity-70 -z-10" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-accent-gold/5 rounded-full filter blur-3xl opacity-70 -z-10" />
-          
+
           <div className="max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
             <div className="lg:col-span-7 flex flex-col gap-8 text-left">
               <div className="flex items-center gap-2 bg-white/70 border border-accent-gold/15 px-4 py-1.5 rounded-full w-fit shadow-sm">
@@ -526,18 +533,18 @@ export default function Home() {
                   Premium Draping Studio & Academy
                 </span>
               </div>
-              
+
               <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif font-black leading-[1.05] text-[#2C2623]">
                 The Fine Art of <br />
                 <span className="luxury-gradient-text">
                   Saree Pleating
                 </span>
               </h2>
-              
+
               <p className="text-sm md:text-base text-gray-600 leading-relaxed max-w-xl font-medium">
                 Save hours of dressing time and step out in absolute luxury. Master the delicate crafts of precision pre-pleating, luxury box folding, and professional press styling designed to hold perfect folds indefinitely.
               </p>
-              
+
               <div className="flex flex-wrap items-center gap-5 mt-4">
                 <a
                   href="#workshops"
@@ -545,15 +552,6 @@ export default function Home() {
                 >
                   Explore Workshops
                 </a>
-                
-                {!initialLoading && !user && (
-                  <button
-                    onClick={handleSimulateAdminLogin}
-                    className="px-8 py-4.5 rounded-xl border border-accent-gold/30 hover:border-brand-pink text-accent-gold hover:text-brand-pink font-bold text-xs uppercase tracking-widest transition-all duration-300 bg-white/40 backdrop-blur-sm"
-                  >
-                    Simulate Admin (Demo)
-                  </button>
-                )}
               </div>
 
               {/* Trust markers */}
@@ -572,7 +570,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            
+
             {/* Gallery teaser */}
             <div className="lg:col-span-5 relative flex justify-center lg:justify-end">
               <div className="relative w-80 h-[440px] md:w-96 md:h-[480px] rounded-3xl overflow-hidden shadow-2xl border border-accent-gold/20 p-2 bg-white/70">
@@ -592,7 +590,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="absolute -bottom-8 -left-8 w-56 h-56 rounded-3xl border border-accent-gold/20 p-2 bg-white shadow-2xl hidden sm:block transform -rotate-3 hover:rotate-0 transition-transform duration-300">
                 <div className="w-full h-full rounded-2xl overflow-hidden relative">
                   <Image
@@ -608,10 +606,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Gallery Section */}
+        {/* Gallery & Services Section */}
         <section id="gallery" className="py-24 bg-white border-t border-accent-gold/10">
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <div className="text-center max-w-xl mx-auto mb-20 flex flex-col gap-4">
+            {/* Gallery Header */}
+            <div className="text-center max-w-xl mx-auto mb-16 flex flex-col gap-4">
               <span className="text-[10px] font-bold text-accent-gold tracking-widest uppercase bg-gold-light/40 px-3 py-1 rounded-full w-fit mx-auto border border-accent-gold/15">The Portfolio</span>
               <h3 className="text-3xl md:text-4xl font-serif font-black text-[#2C2623]">Crafting Crisp Silhouettes</h3>
               <p className="text-xs text-gray-500 font-medium">
@@ -619,9 +618,9 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
-              
-              <div className="group rounded-3xl overflow-hidden bg-white border border-accent-gold/10 shadow-sm hover:shadow-2xl transition-all duration-500">
+            {/* Portfolio Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto mb-24">
+              <div className="group rounded-3xl overflow-hidden bg-[#FAF7F5] border border-accent-gold/10 shadow-sm hover:shadow-2xl transition-all duration-500">
                 <div className="aspect-[4/3] w-full relative overflow-hidden">
                   <Image
                     src="/saree_pleating_silk.png"
@@ -633,7 +632,7 @@ export default function Home() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
-                <div className="p-8 border-t border-accent-gold/10 text-left">
+                <div className="p-8 text-left">
                   <span className="text-[9px] uppercase tracking-widest font-black text-brand-pink">Art of Draping</span>
                   <h4 className="font-serif font-bold text-xl text-[#2C2623] mt-1">Flawless Silk Draping</h4>
                   <p className="text-xs text-gray-500 mt-2 leading-relaxed font-medium">
@@ -642,7 +641,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="group rounded-3xl overflow-hidden bg-white border border-accent-gold/10 shadow-sm hover:shadow-2xl transition-all duration-500">
+              <div className="group rounded-3xl overflow-hidden bg-[#FAF7F5] border border-accent-gold/10 shadow-sm hover:shadow-2xl transition-all duration-500">
                 <div className="aspect-[4/3] w-full relative overflow-hidden">
                   <Image
                     src="/saree_folding_box.png"
@@ -654,7 +653,7 @@ export default function Home() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
-                <div className="p-8 border-t border-accent-gold/10 text-left">
+                <div className="p-8 text-left">
                   <span className="text-[9px] uppercase tracking-widest font-black text-accent-gold">Luxury Storage</span>
                   <h4 className="font-serif font-bold text-xl text-[#2C2623] mt-1">Luxury Box Folding</h4>
                   <p className="text-xs text-gray-500 mt-2 leading-relaxed font-medium">
@@ -662,8 +661,127 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-
             </div>
+
+            {/* Our Services Header */}
+            <div className="text-center max-w-xl mx-auto mb-16 flex flex-col gap-4">
+              <span className="text-[10px] font-bold text-accent-gold tracking-widest uppercase bg-gold-light/40 px-3 py-1 rounded-full w-fit mx-auto border border-accent-gold/15">Our Specialized Services</span>
+              <h3 className="text-3xl md:text-4xl font-serif font-black text-[#2C2623]">Premium Styling Solutions</h3>
+              <p className="text-xs text-gray-500 font-medium">
+                Every saree has its own character. We customize our pre-pleating techniques to complement different fabrics, drapes, and body profiles.
+              </p>
+            </div>
+
+            {/* Services Marquee */}
+            <div className="w-full overflow-hidden mb-20 relative py-4">
+              {/* Fade gradients on edges */}
+              <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#FAF7F5] to-transparent z-10 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#FAF7F5] to-transparent z-10 pointer-events-none" />
+
+              <div className="flex animate-marquee-ltr gap-8 w-max">
+                {[
+                  { name: "Box Folding", img: "/saree_folding_box.png" },
+                  { name: "Semi Fluffy Pleats", img: "/saree_pleating_silk.png" },
+                  { name: "Fluffy Pleats", img: "/saree_party.png" },
+                  { name: "Fluffy Pleats (Hanger)", img: "/saree_party.png" },
+                  { name: "Bridal", img: "/saree_bridal.png" },
+                  { name: "Party Wear", img: "/saree_party.png" },
+                  { name: "Daily Wear", img: "/saree_pleating_silk.png" },
+                  { name: "Long-lasting Pleats", img: "/saree_pleating_silk.png" }
+                ].concat([
+                  { name: "Box Folding", img: "/saree_folding_box.png" },
+                  { name: "Semi Fluffy Pleats", img: "/saree_pleating_silk.png" },
+                  { name: "Fluffy Pleats", img: "/saree_party.png" },
+                  { name: "Fluffy Pleats (Hanger)", img: "/saree_party.png" },
+                  { name: "Bridal", img: "/saree_bridal.png" },
+                  { name: "Party Wear", img: "/saree_party.png" },
+                  { name: "Daily Wear", img: "/saree_pleating_silk.png" },
+                  { name: "Long-lasting Pleats", img: "/saree_pleating_silk.png" }
+                ]).map((service, idx) => (
+                  <div
+                    key={idx}
+                    className="relative flex-shrink-0 w-64 h-80 rounded-[2rem] overflow-hidden border border-accent-gold/10 group bg-white shadow-lg hover:border-brand-pink/35 transition-all duration-500"
+                  >
+                    <div className="absolute inset-0">
+                      <Image
+                        src={service.img}
+                        alt={service.name}
+                        fill
+                        sizes="256px"
+                        style={{ objectFit: "cover" }}
+                        className="group-hover:scale-105 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-left">
+                      <span className="text-[8px] uppercase tracking-widest font-black text-accent-gold/90 block mb-0.5">Signature Service</span>
+                      <h4 className="font-serif font-black text-lg text-white tracking-wide leading-tight">{service.name}</h4>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Rapido Service Banner */}
+            <div className="max-w-5xl mx-auto mb-16 bg-gradient-to-r from-brand-pink to-[#E05275] rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 text-left relative overflow-hidden group">
+              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white shrink-0 animate-bounce">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.64 8.38m6.16 6.09a3.5 3.5 0 01-3.64-3.64m2.87-8.9a18.75 18.75 0 00-6.17 6.17m0 0a18.75 18.75 0 01-6.17-6.17m6.17 6.17l-4 4m-5.19 1.1l-1.32.9a1 1 0 00-.36 1.15l1.6 3.2a1 1 0 001.39.46l1.32-.9m-1.32-.91a2 2 0 011.83-1.83m-1.83 1.83l-4-4M19.5 4.5h.008v.008h-.008V4.5z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-serif font-black text-xl tracking-wide uppercase">⚡ Rapido Service Available</h4>
+                  <p className="text-xs text-white/90 mt-1 max-w-xl font-medium">In a rush? Get express pick-up and delivery for your sarees! We collect your sarees, pre-pleat them professionally, and deliver them back to your doorstep in Gudivada.</p>
+                </div>
+              </div>
+              <a href="https://wa.me/919948423310" target="_blank" rel="noreferrer" className="px-6 py-3.5 bg-white text-brand-pink font-bold text-xs uppercase tracking-widest rounded-xl hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap">Book Express Delivery</a>
+            </div>
+
+            {/* Business Contact Block & Instagram Link */}
+            <div className="max-w-4xl mx-auto bg-[#FAF7F5] border border-accent-gold/15 rounded-3xl p-8 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-10 text-left items-center">
+              <div>
+                <span className="text-[9px] uppercase tracking-widest font-black text-accent-gold bg-gold-light/40 px-2.5 py-1 rounded-full border border-accent-gold/10">Studio Details</span>
+                <h4 className="font-serif font-black text-2xl text-[#2C2623] mt-3">Sai Saree Pre-Pleating</h4>
+                <div className="mt-5 space-y-3.5 text-xs text-gray-600 font-semibold">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">👤</span>
+                    <div>
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Proprietor</p>
+                      <p className="text-gray-800">T. Sai</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">📞</span>
+                    <div>
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Phone / WhatsApp</p>
+                      <a href="tel:9948423310" className="text-brand-pink hover:underline">+91 99484 23310</a>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">📍</span>
+                    <div>
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Studio Location</p>
+                      <p className="text-gray-800">Sri Ram Puram, Gudivada</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Instagram QR Teaser */}
+              <div className="flex flex-col items-center justify-center p-6 bg-white border border-accent-gold/10 rounded-2xl text-center group">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] flex items-center justify-center text-white mb-4 shadow-md group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.01 3.81.058 1.028.047 1.8.22 2.47.487a4.912 4.912 0 011.758 1.143 4.912 4.912 0 011.142 1.758c.267.67.44 1.442.488 2.47.047 1.025.058 1.38.058 3.81s-.01 2.784-.058 3.81c-.048 1.028-.22 1.8-.487 2.47a4.912 4.912 0 01-1.143 1.758 4.912 4.912 0 01-1.758 1.142c-.67.267-1.442.44-2.47.488-.1.047-1.38.058-3.81.058s-2.784-.01-3.81-.058c-1.028-.048-1.8-.22-2.47-.487a4.912 4.912 0 01-1.758-1.142 4.912 4.912 0 01-1.142-1.758c-.267-.67-.44-1.442-.488-2.47C2.01 14.82 2 14.465 2 12.031c0-2.43.01-2.784.058-3.81.047-1.028.22-1.8.487-2.47a4.912 4.912 0 011.142-1.758 4.912 4.912 0 011.758-1.143c.67-.267 1.442-.44 2.47-.488.101-.047 1.38-.058 3.81-.058zM12 6.865A5.135 5.135 0 1017.135 12 5.137 5.137 0 0012 6.865zm0 8.469a3.334 3.334 0 110-6.668 3.334 3.334 0 010 6.668zm5.29-8.471a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h5 className="font-serif font-bold text-lg text-[#2C2623]">Follow our Journey</h5>
+                <p className="text-[10px] text-gray-500 mt-1 max-w-[200px] font-semibold">Latest updates, student stories, and pleating tutorials on Instagram</p>
+                <a href="https://instagram.com/SAI_SAREE_PRE_PLEATING" target="_blank" rel="noreferrer" className="mt-4 px-6 py-2.5 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white font-bold text-[10px] uppercase tracking-widest rounded-xl hover:shadow-lg transition-shadow">@SAI_SAREE_PRE_PLEATING</a>
+              </div>
+            </div>
+
           </div>
         </section>
 
@@ -704,9 +822,21 @@ export default function Home() {
                             {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                           </span>
                         </div>
-                        <h4 className="text-xl font-serif font-bold text-[#2C2623] group-hover:text-brand-pink transition-colors">{event.title}</h4>
+                        <h4 
+                          onClick={() => setSelectedEventDetails(event)}
+                          className="text-xl font-serif font-bold text-[#2C2623] hover:text-brand-pink transition-colors cursor-pointer"
+                        >
+                          {event.title}
+                        </h4>
                         <p className="text-xs text-gray-500 mt-3 line-clamp-3 leading-relaxed font-medium">{event.description}</p>
                         
+                        <button
+                          onClick={() => setSelectedEventDetails(event)}
+                          className="text-[10px] text-accent-gold hover:text-brand-pink font-black uppercase tracking-wider flex items-center gap-1 transition-colors mt-3"
+                        >
+                          View Syllabus & Details ➔
+                        </button>
+
                         <div className="mt-6 flex flex-col gap-2.5 text-xs text-gray-500 border-t border-accent-gold/5 pt-4">
                           <div className="flex items-center gap-2">
                             <span>📍</span>
@@ -762,115 +892,114 @@ export default function Home() {
         {user && (
           <section id="dashboard" className="py-24 bg-white border-t border-accent-gold/10">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
-              
+
               {/* User Participant Dashboard */}
               {user.role !== "admin" && (
                 <div className="mb-20">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
-                  <div>
-                    <span className="text-[10px] font-bold text-accent-gold tracking-widest uppercase bg-gold-light/40 px-3 py-1 rounded-full border border-accent-gold/15">Student Portal</span>
-                    <h3 className="text-3xl font-serif font-black text-[#2C2623] mt-3">My Academy Schedule</h3>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
+                    <div>
+                      <span className="text-[10px] font-bold text-accent-gold tracking-widest uppercase bg-gold-light/40 px-3 py-1 rounded-full border border-accent-gold/15">Student Portal</span>
+                      <h3 className="text-3xl font-serif font-black text-[#2C2623] mt-3">My Academy Schedule</h3>
+                    </div>
+                    <button
+                      onClick={fetchMyRegistrations}
+                      className="text-xs text-brand-pink hover:text-brand-pink-dark font-black tracking-wider uppercase border-b-2 border-brand-pink/20 hover:border-brand-pink pb-1 transition-all"
+                    >
+                      Refresh Dashboard
+                    </button>
                   </div>
-                  <button 
-                    onClick={fetchMyRegistrations}
-                    className="text-xs text-brand-pink hover:text-brand-pink-dark font-black tracking-wider uppercase border-b-2 border-brand-pink/20 hover:border-brand-pink pb-1 transition-all"
-                  >
-                    Refresh Dashboard
-                  </button>
+
+                  {myRegistrations.length === 0 ? (
+                    <div className="bg-blush-pink/10 border border-dashed border-brand-pink/20 rounded-3xl p-12 text-center max-w-lg mx-auto shadow-sm">
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">You are not enrolled in any upcoming masterclasses.</p>
+                      <a href="#workshops" className="inline-block mt-4 px-6 py-2.5 bg-brand-pink hover:bg-brand-pink-dark text-white text-[10px] uppercase tracking-widest font-bold rounded-lg transition-all">Book A Workshop</a>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {myRegistrations.map((reg) => (
+                        <div key={reg.event_id} className="bg-white rounded-3xl border border-accent-gold/15 p-8 shadow-sm flex flex-col justify-between hover:shadow-xl transition-all duration-300">
+                          <div>
+                            <div className="flex items-center justify-between gap-2 mb-4">
+                              <span className="text-[9px] uppercase font-black text-accent-gold bg-gold-light/40 px-2.5 py-1 rounded-full border border-accent-gold/10">
+                                {reg.event_time}
+                              </span>
+                              <span className="text-xs text-gray-400 font-bold">
+                                {new Date(reg.event_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                              </span>
+                            </div>
+
+                            <h4 className="font-serif font-bold text-xl text-[#2C2623]">{reg.event_title}</h4>
+
+                            <div className="grid grid-cols-2 gap-6 my-6 bg-blush-pink/10 p-5 rounded-2xl border border-brand-pink/5">
+                              <div>
+                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Payment Status</p>
+                                <span className={`text-xs font-black inline-block mt-2 px-2.5 py-1 rounded-lg ${reg.payment_status === "COMPLETED" ? "bg-green-50 text-green-700 border border-green-150" : "bg-amber-50 text-amber-700 border border-amber-150"
+                                  }`}>
+                                  {reg.payment_status}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Attendance</p>
+                                <span className="text-xs font-black text-[#2C2623] mt-2 block">
+                                  {reg.attendance_status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-accent-gold/5">
+                            {reg.payment_status === "PENDING" && (
+                              <div className="text-[11px] text-amber-700 bg-amber-50/50 px-4 py-3 rounded-xl border border-amber-100 flex items-start gap-2 text-left font-medium">
+                                <span className="mt-0.5">ℹ️</span>
+                                <span>Payment is pending admin verification. Google Meet details will be shared via email once approved.</span>
+                              </div>
+                            )}
+                            {reg.payment_status === "COMPLETED" && reg.meet_link && (
+                              <a
+                                href={reg.meet_link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full py-3 bg-[#2C2623] hover:bg-brand-pink text-white rounded-xl text-center text-xs uppercase tracking-widest font-black transition-all shadow-md"
+                              >
+                                Join Google Meet
+                              </a>
+                            )}
+                            {reg.certificate_sent && (
+                              <div className="text-[11px] text-green-700 bg-green-50/50 px-4 py-3 rounded-xl border border-green-150 flex items-start gap-2 text-left font-medium">
+                                <span className="mt-0.5">🎓</span>
+                                <span>Your professional pre-pleating completion certificate has been emailed!</span>
+                              </div>
+                            )}
+                            {reg.has_drive_access && reg.drive_folder_link ? (
+                              <a
+                                href={reg.drive_folder_link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full py-3 border-2 border-accent-gold text-gold-dark hover:bg-accent-gold/5 rounded-xl text-center text-xs uppercase tracking-widest font-black transition-colors"
+                              >
+                                📂 Open Drive Recordings
+                              </a>
+                            ) : (
+                              <button
+                                disabled
+                                className="w-full py-3 bg-gray-50 border border-gray-150 text-gray-400 rounded-xl text-center text-xs font-bold cursor-default flex items-center justify-center gap-2"
+                              >
+                                🔒 Video Recordings Locked
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-
-                {myRegistrations.length === 0 ? (
-                  <div className="bg-blush-pink/10 border border-dashed border-brand-pink/20 rounded-3xl p-12 text-center max-w-lg mx-auto shadow-sm">
-                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">You are not enrolled in any upcoming masterclasses.</p>
-                    <a href="#workshops" className="inline-block mt-4 px-6 py-2.5 bg-brand-pink hover:bg-brand-pink-dark text-white text-[10px] uppercase tracking-widest font-bold rounded-lg transition-all">Book A Workshop</a>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {myRegistrations.map((reg) => (
-                      <div key={reg.event_id} className="bg-white rounded-3xl border border-accent-gold/15 p-8 shadow-sm flex flex-col justify-between hover:shadow-xl transition-all duration-300">
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-4">
-                            <span className="text-[9px] uppercase font-black text-accent-gold bg-gold-light/40 px-2.5 py-1 rounded-full border border-accent-gold/10">
-                              {reg.event_time}
-                            </span>
-                            <span className="text-xs text-gray-400 font-bold">
-                              {new Date(reg.event_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                            </span>
-                          </div>
-                          
-                          <h4 className="font-serif font-bold text-xl text-[#2C2623]">{reg.event_title}</h4>
-                          
-                          <div className="grid grid-cols-2 gap-6 my-6 bg-blush-pink/10 p-5 rounded-2xl border border-brand-pink/5">
-                            <div>
-                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Payment Status</p>
-                              <span className={`text-xs font-black inline-block mt-2 px-2.5 py-1 rounded-lg ${
-                                reg.payment_status === "COMPLETED" ? "bg-green-50 text-green-700 border border-green-150" : "bg-amber-50 text-amber-700 border border-amber-150"
-                              }`}>
-                                {reg.payment_status}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Attendance</p>
-                              <span className="text-xs font-black text-[#2C2623] mt-2 block">
-                                {reg.attendance_status}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-accent-gold/5">
-                          {reg.payment_status === "PENDING" && (
-                            <div className="text-[11px] text-amber-700 bg-amber-50/50 px-4 py-3 rounded-xl border border-amber-100 flex items-start gap-2 text-left font-medium">
-                              <span className="mt-0.5">ℹ️</span>
-                              <span>Payment is pending admin verification. Google Meet details will be shared via email once approved.</span>
-                            </div>
-                          )}
-                          {reg.payment_status === "COMPLETED" && reg.meet_link && (
-                            <a
-                              href={reg.meet_link}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="w-full py-3 bg-[#2C2623] hover:bg-brand-pink text-white rounded-xl text-center text-xs uppercase tracking-widest font-black transition-all shadow-md"
-                            >
-                              Join Google Meet
-                            </a>
-                          )}
-                          {reg.certificate_sent && (
-                            <div className="text-[11px] text-green-700 bg-green-50/50 px-4 py-3 rounded-xl border border-green-150 flex items-start gap-2 text-left font-medium">
-                              <span className="mt-0.5">🎓</span>
-                              <span>Your professional pre-pleating completion certificate has been emailed!</span>
-                            </div>
-                          )}
-                          {reg.has_drive_access && reg.drive_folder_link ? (
-                            <a
-                              href={reg.drive_folder_link}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="w-full py-3 border-2 border-accent-gold text-gold-dark hover:bg-accent-gold/5 rounded-xl text-center text-xs uppercase tracking-widest font-black transition-colors"
-                            >
-                              📂 Open Drive Recordings
-                            </a>
-                          ) : (
-                            <button
-                              disabled
-                              className="w-full py-3 bg-gray-50 border border-gray-150 text-gray-400 rounded-xl text-center text-xs font-bold cursor-default flex items-center justify-center gap-2"
-                            >
-                              🔒 Video Recordings Locked
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
               )}
 
               {/* Admin Control Center */}
               {user.role === "admin" && (
                 <div className="bg-white rounded-3xl border border-accent-gold/15 p-8 lg:p-10 shadow-lg relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-brand-pink/5 rounded-full filter blur-xl -z-10" />
-                  
+
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 border-b border-accent-gold/10 pb-6 text-left">
                     <div>
                       <span className="text-[9px] uppercase font-black text-brand-pink bg-blush-pink px-2.5 py-1 rounded-full border border-brand-pink/10">Administrator</span>
@@ -1099,7 +1228,7 @@ export default function Home() {
           <div>
             <h5 className="font-serif font-black text-xl text-white tracking-wide">Sai Saree Academy</h5>
             <p className="text-xs text-gray-400 mt-4 max-w-xs leading-relaxed font-medium">
-              Premium saree pre-pleating, luxury box folding, and professional draping classes in Hyderabad.
+              Premium saree pre-pleating, luxury box folding, and professional draping classes in Gudivada.
             </p>
           </div>
           <div>
@@ -1112,8 +1241,8 @@ export default function Home() {
           </div>
           <div>
             <h6 className="font-bold text-[10px] uppercase tracking-widest text-accent-gold">Location & Contact</h6>
-            <p className="text-xs text-gray-400 mt-4 font-semibold">📍 Banjara Hills, Hyderabad, TS, India</p>
-            <p className="text-xs text-gray-400 mt-2 font-semibold">📞 +91 98765 43210</p>
+            <p className="text-xs text-gray-400 mt-4 font-semibold">📍 Sri Ram Puram, Gudivada</p>
+            <p className="text-xs text-gray-400 mt-2 font-semibold">📞 +91 99484 23310</p>
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 border-t border-white/5 mt-12 pt-8 text-center text-xs text-gray-500 font-bold uppercase tracking-wider">
@@ -1125,7 +1254,7 @@ export default function Home() {
       {authMode && (
         <div className="fixed inset-0 z-50 bg-[#2C2623]/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-accent-gold/20 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            
+
             {/* Top Close */}
             <button
               onClick={() => {
@@ -1141,7 +1270,7 @@ export default function Home() {
               {authMode === "login" ? "Welcome Back" : "Create Account"}
             </h4>
             <p className="text-xs text-gray-400 text-center mb-8 font-medium">
-              {authMode === "login" ? "Enter credentials to access your dashboard" : "Sign up as a student or admin manager"}
+              {authMode === "login" ? "Enter credentials to access your dashboard" : "Sign up as a student to access workshops"}
             </p>
 
             {authError && (
@@ -1165,7 +1294,7 @@ export default function Home() {
                   />
                 </div>
               )}
-              
+
               <div>
                 <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Email Address</label>
                 <input
@@ -1205,19 +1334,6 @@ export default function Home() {
                 />
               </div>
 
-              {authMode === "signup" && (
-                <div className="flex items-center gap-2 mt-1">
-                  <input
-                    type="checkbox"
-                    id="adminRoleCheckbox"
-                    onChange={(e) => setFormData({ ...formData, role: e.target.checked ? "admin" : "user" })}
-                    className="rounded border-accent-gold/30 text-brand-pink focus:ring-brand-pink w-4 h-4"
-                  />
-                  <label htmlFor="adminRoleCheckbox" className="text-xs text-gray-500 font-bold cursor-pointer select-none">
-                    Register as Admin Manager
-                  </label>
-                </div>
-              )}
 
               <button
                 type="submit"
@@ -1262,7 +1378,7 @@ export default function Home() {
             </button>
 
             <h4 className="text-2xl font-serif font-black text-brand-pink-dark mb-6 text-left">Create New Masterclass</h4>
-            
+
             <form onSubmit={handleCreateEvent} className="grid grid-cols-2 gap-5 text-left">
               <div className="col-span-2">
                 <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Workshop Title</label>
@@ -1313,7 +1429,7 @@ export default function Home() {
                 <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Location / Venue</label>
                 <input
                   type="text"
-                  placeholder="e.g. Hyderabad Studio / Online"
+                  placeholder="e.g. Gudivada Studio / Online"
                   value={newEvent.location}
                   onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-accent-gold/25 bg-[#FAF7F5] text-[#2C2623] text-xs font-bold tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-brand-pink focus:bg-white transition-colors"
@@ -1356,6 +1472,193 @@ export default function Home() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Workshop Details & Syllabus Modal */}
+      {selectedEventDetails && (
+        <div className="fixed inset-0 z-50 bg-[#2C2623]/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl p-6 md:p-10 shadow-2xl border border-accent-gold/25 relative animate-in fade-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+            
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedEventDetails(null)}
+              className="absolute top-6 right-6 w-8 h-8 rounded-full bg-blush-pink hover:bg-brand-pink text-[#2C2623] hover:text-white font-bold text-sm flex items-center justify-center transition-colors duration-300"
+            >
+              ✕
+            </button>
+
+            {/* Header info */}
+            <div className="text-left border-b border-accent-gold/10 pb-6 mb-6">
+              <span className="text-[9px] uppercase tracking-widest font-black text-brand-pink bg-blush-pink px-3 py-1 rounded-full border border-brand-pink/10">
+                Workshop Details
+              </span>
+              <h4 className="text-2xl md:text-3xl font-serif font-black text-[#2C2623] mt-3 leading-snug">
+                {selectedEventDetails.title}
+              </h4>
+              <p className="text-xs text-gray-500 mt-2 font-medium leading-relaxed">
+                {selectedEventDetails.description}
+              </p>
+
+              {/* Quick Info Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+                <div className="bg-blush-pink/40 p-3 rounded-2xl border border-brand-pink/5 text-center">
+                  <span className="text-[9px] uppercase font-bold text-gray-400 block">Date</span>
+                  <span className="text-xs font-serif font-black text-[#2C2623] mt-1 block">
+                    {new Date(selectedEventDetails.date).toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+                <div className="bg-blush-pink/40 p-3 rounded-2xl border border-brand-pink/5 text-center">
+                  <span className="text-[9px] uppercase font-bold text-gray-400 block">Timings</span>
+                  <span className="text-xs font-serif font-black text-[#2C2623] mt-1 block">
+                    {selectedEventDetails.time || "11AM to 2PM"}
+                  </span>
+                </div>
+                <div className="bg-gold-light/40 p-3 rounded-2xl border border-accent-gold/10 text-center col-span-2">
+                  <span className="text-[9px] uppercase font-bold text-accent-gold block">Offer Price</span>
+                  <div className="flex items-center justify-center gap-1.5 mt-0.5">
+                    <span className="text-xs text-gray-400 line-through font-bold">Rs. 1199</span>
+                    <span className="text-sm font-serif font-black text-brand-pink-dark">Rs. 999/-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Detail sections layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 text-left">
+              {/* Left Column: Syllabus */}
+              <div className="flex flex-col gap-6">
+                <div>
+                  <h5 className="font-serif font-black text-base text-brand-pink-dark mb-3 flex items-center gap-2">
+                    <span>✨</span> Course Syllabus
+                  </h5>
+                  <ul className="text-xs text-gray-600 font-semibold space-y-2">
+                    {[
+                      "Product & Essential knowledge.",
+                      "Client body measurements with tape.",
+                      "Client body measurements without tape.",
+                      "Technique for easy pre-pleating pleats.",
+                      "Ironing the pallu, front pleats & centre Pleats.",
+                      "Fluffy Pleats technique.",
+                      "Box folding.",
+                      "Hanger folding."
+                    ].map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-accent-gold font-bold">{idx + 1}.</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h5 className="font-serif font-black text-base text-brand-pink-dark mb-3 flex items-center gap-2">
+                    <span>🎁</span> Complimentary Syllabus
+                  </h5>
+                  <ul className="text-xs text-gray-600 font-semibold space-y-2">
+                    {[
+                      "How to start the business.",
+                      "Social media tips & tricks.",
+                      "Provide e-certificate.",
+                      "Provide Recorded video (1 month access)."
+                    ].map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-brand-pink font-bold">✓</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Right Column: Requirements & Payment */}
+              <div className="flex flex-col gap-6">
+                <div>
+                  <h5 className="font-serif font-black text-base text-[#2C2623] mb-3 flex items-center gap-2">
+                    <span>📝</span> Requirements
+                  </h5>
+                  <p className="text-xs text-gray-600 font-bold bg-[#FAF7F5] px-4 py-2.5 rounded-xl border border-accent-gold/5 w-fit">
+                    Notes & Pen
+                  </p>
+                </div>
+
+                <div className="bg-[#FAF7F5] p-5 rounded-3xl border border-accent-gold/15">
+                  <h5 className="font-serif font-black text-sm text-[#2C2623] mb-2.5 flex items-center gap-1.5">
+                    <span>💳</span> Google Pay / PhonePe
+                  </h5>
+                  <p className="text-[11px] text-gray-700 font-bold leading-relaxed">
+                    Number: <span className="text-brand-pink-dark text-xs font-black">9490923825</span><br />
+                    Name: <span className="text-[#2C2623] font-black">Venkatesh tatavarthi</span>
+                  </p>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-1">
+                    * Please pay to this number
+                  </p>
+
+                  <div className="mt-4 pt-4 border-t border-accent-gold/10">
+                    <h5 className="font-serif font-black text-sm text-brand-pink-dark mb-1.5 flex items-center gap-1.5">
+                      <span>💬</span> WhatsApp Registration
+                    </h5>
+                    <p className="text-[11px] text-gray-700 font-bold leading-relaxed">
+                      After payment, message me on WhatsApp with your name:<br />
+                      <a 
+                        href="https://wa.me/918885245233" 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="text-brand-pink hover:underline font-black text-xs"
+                      >
+                        +91 8885245233
+                      </a>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-red-50/50 p-4 rounded-2xl border border-red-100 text-left">
+                  <h6 className="text-[10px] font-black uppercase text-red-700 tracking-wider mb-1.5">Important Notes:</h6>
+                  <ul className="text-[10px] text-gray-600 font-semibold space-y-1">
+                    <li>• Amount is non-refundable.</li>
+                    <li>• On any reason you will not be rescheduled to another batch.</li>
+                    <li>• Class will be conducted via Google Meet.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer with Book Masterclass */}
+            <div className="mt-10 pt-6 border-t border-accent-gold/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-xs text-gray-500 font-medium text-left">
+                Ready to transform your styling skills? Book now.
+              </p>
+              
+              <div className="flex gap-4 w-full sm:w-auto shrink-0">
+                <button
+                  onClick={() => setSelectedEventDetails(null)}
+                  className="px-6 py-3.5 rounded-xl border border-accent-gold/20 text-[#2C2623] font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+                {myRegistrations.some((r) => r.event_id === selectedEventDetails.id) ? (
+                  <button
+                    disabled
+                    className="px-8 py-3.5 rounded-xl bg-green-50 text-green-700 text-xs uppercase tracking-widest font-black border border-green-200 cursor-default flex items-center justify-center gap-1.5"
+                  >
+                    ✓ Booked
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      const id = selectedEventDetails.id;
+                      setSelectedEventDetails(null);
+                      handleRegister(id);
+                    }}
+                    disabled={loading === selectedEventDetails.id}
+                    className="px-8 py-3.5 rounded-xl bg-brand-pink hover:bg-brand-pink-dark text-white text-xs uppercase tracking-widest font-bold transition-all shadow-md shadow-brand-pink/15 hover:scale-[1.02]"
+                  >
+                    Book Masterclass
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}

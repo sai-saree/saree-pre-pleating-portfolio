@@ -13,7 +13,7 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata = {
   title: "Sai Saree Academy — Premium Saree Pre-Pleating & Draping",
-  description: "Master the art of perfect saree pre-pleating, luxury box folding, and professional draping from the leading academy in Hyderabad. Register for workshops and access lecture recordings.",
+  description: "Master the art of perfect saree pre-pleating, luxury box folding, and professional draping from the leading academy in Gudivada. Register for workshops and access lecture recordings.",
 };
 
 export default function RootLayout({ children }) {

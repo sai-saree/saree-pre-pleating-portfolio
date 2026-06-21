@@ -5,6 +5,7 @@ const nextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  serverExternalPackages: ["pdf-lib"],
 };
 
 

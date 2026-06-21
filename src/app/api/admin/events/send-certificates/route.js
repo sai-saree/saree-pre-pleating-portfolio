@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import prisma from "@/lib/prisma";
 import { getUserFromRequest, requireAdmin } from "@/lib/auth";
 import { generateCertificate } from "@/lib/certificate";
