@@ -1,0 +1,74 @@
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  NOT_MARKED
+}
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model events {
+  id                    Int       @id @default(autoincrement())
+  title                 String    @db.VarChar(100)
+  description           String?
+  date                  DateTime  @db.Date
+  time                  String?   @db.VarChar(20)
+  location              String?   @db.VarChar(255)
+  images                String[]
+  registration_deadline DateTime? @db.Date
+  meet_link             String?   @db.VarChar(500)
+  drive_folder_id       String?   // Google Drive folder for this event's recordings
+  created_by            Int?
+  created_at            DateTime? @default(now()) @db.Timestamp(6)
+  updated_at            DateTime? @default(now()) @db.Timestamp(6)
+  users                 users?    @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  registrations registrations[]
+}
+
+model users {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(100)
+  email      String    @unique @db.VarChar(255)
+  phone      String    @unique @db.VarChar(10)
+  password   String    @db.VarChar(255)
+  role       String?   @default("user") @db.VarChar(20)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+  events     events[]
+  registrations  registrations[]
+}
+
+model registrations {
+  user_id   Int
+  event_id  Int
+
+  payment_status     PaymentStatus    @default(PENDING)
+  attendance_status  AttendanceStatus @default(NOT_MARKED)
+
+  // Certificate
+  certificate_sent   Boolean          @default(false)
+
+  // Google Drive access
+  has_drive_access    Boolean          @default(false)
+  drive_permission_id String?
+  drive_access_expiry DateTime?
+
+  created_at          DateTime        @default(now())
+  updated_at          DateTime        @updatedAt
+
+  // relations (FOREIGN KEYS)
+  user   users  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  event  events @relation(fields: [event_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, event_id])
+}
