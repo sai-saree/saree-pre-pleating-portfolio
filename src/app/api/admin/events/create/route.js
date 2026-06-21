@@ -18,6 +18,8 @@ export async function POST(req) {
         time: body.time || null,
         location: body.location || null,
         images: body.images || [], // must be array
+        meet_link: body.meet_link || null,
+        drive_folder_id: body.drive_folder_id || null,
         registration_deadline: body.registration_deadline
           ? new Date(body.registration_deadline)
           : null,

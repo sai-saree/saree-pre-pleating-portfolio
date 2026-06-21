@@ -42,6 +42,7 @@ export default function Home() {
   const [selectedEventDetails, setSelectedEventDetails] = useState(null);
 
   // Admin New Event Form
+  const [editingEvent, setEditingEvent] = useState(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -423,6 +424,39 @@ export default function Home() {
       setShowEventModal(false);
       fetchEvents();
       setNewEvent({ title: "", description: "", date: "", time: "", location: "", meet_link: "", drive_folder_id: "" });
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleUpdateEvent = async (e) => {
+    e.preventDefault();
+    if (!editingEvent || !editingEvent.id) return;
+    setLoading(`edit-event-${editingEvent.id}`);
+    try {
+      const res = await fetch("/api/admin/events/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingEvent.id,
+          title: editingEvent.title,
+          description: editingEvent.description,
+          date: new Date(editingEvent.date).toISOString(),
+          time: editingEvent.time,
+          location: editingEvent.location,
+          meet_link: editingEvent.meet_link,
+          drive_folder_id: editingEvent.drive_folder_id,
+          images: editingEvent.images || [],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      showToast("Event updated successfully!");
+      setEditingEvent(null);
+      fetchEvents();
     } catch (err) {
       showToast(err.message, "error");
     } finally {
@@ -812,7 +846,11 @@ export default function Home() {
                 {events.map((event) => {
                   const isRegistered = myRegistrations.some((r) => r.event_id === event.id);
                   return (
-                    <div key={event.id} className="bg-white rounded-3xl border border-accent-gold/10 p-8 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-300 relative group">
+                    <div 
+                      key={event.id} 
+                      onClick={() => setSelectedEventDetails(event)}
+                      className="bg-white rounded-3xl border border-accent-gold/10 p-8 flex flex-col justify-between shadow-sm hover:shadow-xl hover:border-brand-pink/35 cursor-pointer transition-all duration-300 relative group text-left"
+                    >
                       <div>
                         <div className="flex items-center justify-between gap-2 mb-6">
                           <span className="text-[9px] uppercase font-black text-brand-pink bg-blush-pink px-3 py-1 rounded-full border border-brand-pink/10">
@@ -822,21 +860,11 @@ export default function Home() {
                             {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                           </span>
                         </div>
-                        <h4 
-                          onClick={() => setSelectedEventDetails(event)}
-                          className="text-xl font-serif font-bold text-[#2C2623] hover:text-brand-pink transition-colors cursor-pointer"
-                        >
+                        <h4 className="text-xl font-serif font-bold text-[#2C2623] group-hover:text-brand-pink transition-colors">
                           {event.title}
                         </h4>
                         <p className="text-xs text-gray-500 mt-3 line-clamp-3 leading-relaxed font-medium">{event.description}</p>
                         
-                        <button
-                          onClick={() => setSelectedEventDetails(event)}
-                          className="text-[10px] text-accent-gold hover:text-brand-pink font-black uppercase tracking-wider flex items-center gap-1 transition-colors mt-3"
-                        >
-                          View Syllabus & Details ➔
-                        </button>
-
                         <div className="mt-6 flex flex-col gap-2.5 text-xs text-gray-500 border-t border-accent-gold/5 pt-4">
                           <div className="flex items-center gap-2">
                             <span>📍</span>
@@ -853,22 +881,41 @@ export default function Home() {
 
                       <div className="mt-8 pt-6 border-t border-accent-gold/5">
                         {user?.role === "admin" ? (
-                          <a
-                            href="#dashboard"
-                            className="w-full py-3.5 rounded-xl bg-accent-gold hover:bg-gold-dark text-white text-xs uppercase tracking-widest font-bold transition-all shadow-md text-center block"
-                          >
-                            Manage Registrations
-                          </a>
+                          <div className="flex gap-3">
+                            <a
+                              href="#dashboard"
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex-1 py-3.5 rounded-xl bg-accent-gold hover:bg-gold-dark text-white text-xs uppercase tracking-widest font-bold transition-all shadow-md text-center block"
+                            >
+                              Manage
+                            </a>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingEvent({
+                                  ...event,
+                                  date: event.date ? new Date(event.date).toISOString().split('T')[0] : ""
+                                });
+                              }}
+                              className="px-4 py-3.5 rounded-xl border border-accent-gold/20 text-[#2C2623] hover:bg-gray-50 text-xs uppercase tracking-widest font-bold transition-all block text-center"
+                            >
+                              Edit
+                            </button>
+                          </div>
                         ) : isRegistered ? (
                           <button
                             disabled
+                            onClick={(e) => e.stopPropagation()}
                             className="w-full py-3.5 rounded-xl bg-green-50 text-green-700 text-xs uppercase tracking-widest font-black border border-green-200 cursor-default flex items-center justify-center gap-1.5"
                           >
                             ✓ Booked
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleRegister(event.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRegister(event.id);
+                            }}
                             disabled={loading === event.id}
                             className="w-full py-3.5 rounded-xl bg-brand-pink hover:bg-brand-pink-dark text-white text-xs uppercase tracking-widest font-bold transition-all shadow-md shadow-brand-pink/10 hover:shadow-lg flex items-center justify-center"
                           >
@@ -1393,10 +1440,10 @@ export default function Home() {
               </div>
 
               <div className="col-span-2">
-                <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Description</label>
+                <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Description (Syllabus: one topic per line)</label>
                 <textarea
                   required
-                  placeholder="Details on pleating techniques, materials provided, and curriculum..."
+                  placeholder="Enter the syllabus topics, one topic per line (e.g.&#10;1. Product & Essential knowledge&#10;2. Box folding...)"
                   value={newEvent.description}
                   onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-accent-gold/25 bg-[#FAF7F5] text-[#2C2623] text-xs font-bold tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-brand-pink focus:bg-white transition-colors h-24 resize-none"
@@ -1497,9 +1544,6 @@ export default function Home() {
               <h4 className="text-2xl md:text-3xl font-serif font-black text-[#2C2623] mt-3 leading-snug">
                 {selectedEventDetails.title}
               </h4>
-              <p className="text-xs text-gray-500 mt-2 font-medium leading-relaxed">
-                {selectedEventDetails.description}
-              </p>
 
               {/* Quick Info Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
@@ -1534,21 +1578,19 @@ export default function Home() {
                     <span>✨</span> Course Syllabus
                   </h5>
                   <ul className="text-xs text-gray-600 font-semibold space-y-2">
-                    {[
-                      "Product & Essential knowledge.",
-                      "Client body measurements with tape.",
-                      "Client body measurements without tape.",
-                      "Technique for easy pre-pleating pleats.",
-                      "Ironing the pallu, front pleats & centre Pleats.",
-                      "Fluffy Pleats technique.",
-                      "Box folding.",
-                      "Hanger folding."
-                    ].map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-accent-gold font-bold">{idx + 1}.</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
+                    {(selectedEventDetails.description || "")
+                      .split("\n")
+                      .map((line) => line.trim())
+                      .filter((line) => line.length > 0)
+                      .map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-accent-gold font-bold">{idx + 1}.</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    {!(selectedEventDetails.description || "").trim() && (
+                      <li className="text-gray-400 italic">No syllabus topics listed.</li>
+                    )}
                   </ul>
                 </div>
 
@@ -1659,6 +1701,116 @@ export default function Home() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Edit Event Modal */}
+      {editingEvent && (
+        <div className="fixed inset-0 z-50 bg-[#2C2623]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg p-8 shadow-2xl border border-accent-gold/20 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setEditingEvent(null)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 font-bold text-base leading-none transition-colors"
+            >
+              ✕
+            </button>
+
+            <h4 className="text-2xl font-serif font-black text-brand-pink-dark mb-6 text-left">Edit Masterclass</h4>
+            
+            <form onSubmit={handleUpdateEvent} className="grid grid-cols-2 gap-5 text-left">
+              <div className="col-span-2">
+                <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Workshop Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Saree Box Folding Masterclass"
+                  value={editingEvent.title}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, title: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-accent-gold/25 bg-[#FAF7F5] text-[#2C2623] text-xs font-bold tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-brand-pink focus:bg-white transition-colors"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Description (Syllabus: one topic per line)</label>
+                <textarea
+                  required
+                  placeholder="Enter the syllabus topics, one topic per line (e.g.&#10;1. Product & Essential knowledge&#10;2. Box folding...)"
+                  value={editingEvent.description || ""}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, description: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-accent-gold/25 bg-[#FAF7F5] text-[#2C2623] text-xs font-bold tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-brand-pink focus:bg-white transition-colors h-24 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Scheduled Date</label>
+                <input
+                  type="date"
+                  required
+                  value={editingEvent.date}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, date: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-accent-gold/25 bg-[#FAF7F5] text-[#2C2623] text-xs font-bold tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-brand-pink focus:bg-white transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Class Time</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 11:00 AM - 2:00 PM"
+                  value={editingEvent.time || ""}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, time: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-accent-gold/25 bg-[#FAF7F5] text-[#2C2623] text-xs font-bold tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-brand-pink focus:bg-white transition-colors"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Location / Venue</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Gudivada Studio / Online"
+                  value={editingEvent.location || ""}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, location: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-accent-gold/25 bg-[#FAF7F5] text-[#2C2623] text-xs font-bold tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-brand-pink focus:bg-white transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Google Meet link</label>
+                <input
+                  type="url"
+                  placeholder="https://meet.google.com/..."
+                  value={editingEvent.meet_link || ""}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, meet_link: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-accent-gold/25 bg-[#FAF7F5] text-[#2C2623] text-xs font-bold tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-brand-pink focus:bg-white transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-[9px] uppercase font-bold text-gray-400 tracking-widest block mb-1">Drive Folder ID</label>
+                <input
+                  type="text"
+                  placeholder="Google Drive Folder ID"
+                  value={editingEvent.drive_folder_id || ""}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, drive_folder_id: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-accent-gold/25 bg-[#FAF7F5] text-[#2C2623] text-xs font-bold tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-brand-pink focus:bg-white transition-colors"
+                />
+              </div>
+
+              <div className="col-span-2 mt-4">
+                <button
+                  type="submit"
+                  disabled={loading === `edit-event-${editingEvent.id}`}
+                  className="w-full py-4 bg-[#2C2623] hover:bg-brand-pink text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading === `edit-event-${editingEvent.id}` ? (
+                    <LuxuryDrapeLoader text="Updating..." />
+                  ) : (
+                    "Save Changes"
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

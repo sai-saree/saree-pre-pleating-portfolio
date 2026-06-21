@@ -25,6 +25,8 @@ export async function PUT(req) {
         ...(body.time !== undefined && { time: body.time }),
         ...(body.location !== undefined && { location: body.location }),
         ...(body.images !== undefined && { images: body.images }),
+        ...(body.meet_link !== undefined && { meet_link: body.meet_link }),
+        ...(body.drive_folder_id !== undefined && { drive_folder_id: body.drive_folder_id }),
         ...(body.registration_deadline !== undefined && {
           registration_deadline: body.registration_deadline
             ? new Date(body.registration_deadline)
